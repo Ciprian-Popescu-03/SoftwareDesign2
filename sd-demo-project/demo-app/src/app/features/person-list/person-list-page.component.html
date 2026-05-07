@@ -1,0 +1,60 @@
+<mat-toolbar color="primary" style="display: flex; justify-content: space-between;">
+  <div>
+    <span>Admin Dashboard</span>
+    <button mat-button style="margin-left: 20px; color: white;" (click)="goToProducts()">
+      <mat-icon>inventory_2</mat-icon> Products
+    </button>
+  </div>
+  <button mat-button style="color: white;" (click)="logout()">
+    <mat-icon>logout</mat-icon> Logout
+  </button>
+</mat-toolbar>
+
+<main class="content">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Manage People</h1>
+      <p class="page-subtitle">View, create, edit, and delete person records.</p>
+    </div>
+    <button mat-flat-button (click)="openCreateDialog()" [disabled]="isLoading()">
+      <mat-icon>add</mat-icon> New Person
+    </button>
+  </header>
+
+  <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 20px;">
+    <mat-label>Search People (Name, Email, or Age)</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Andrei or andrei@test.com...">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let person">{{ person.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="age">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Age</th>
+        <td mat-cell *matCellDef="let person">{{ person.age }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let person">{{ person.email }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let person">
+          <button mat-icon-button (click)="openEditDialog(person)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button color="warn" (click)="openDeleteDialog(person)"><mat-icon>delete</mat-icon></button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</main>
