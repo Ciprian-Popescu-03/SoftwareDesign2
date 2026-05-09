@@ -1,57 +1,66 @@
 package com.andrei.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name = "person")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Person {
+@Data // From Lombok
+public class Person implements UserDetails {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(unique = true, nullable = false)
+    private String username; // Or email, if you use email to log in
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    private Integer age;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role = Role.CUSTOMER;
+    private Role role; // Assuming you have a Role enum with CUSTOMER, ADMIN
 
+    // --- UserDetails Methods ---
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // This maps your role to a Spring Security authority (e.g., "ROLE_ADMIN")
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    @Override
+    public String getPassword() {
+        return password;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    @Override
+    public String getUsername() {
+        return username; // Or email, depending on your login strategy
+    }
 
-    public Integer getAge() { return age; }
-    public void setAge(Integer age) { this.age = age; }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
-    public List<Order> getOrders() { return orders; }
-    public void setOrders(List<Order> orders) { this.orders = orders; }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
