@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http'; // <-- Imported this for the error type
-import { PersonService } from '../../services/person.service';
+import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { PersonService, AuthResponse } from '../../services/person.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,25 +25,26 @@ export class LoginComponent {
     this.errorMessage.set('');
 
     this.personService.login({ email: this.email(), password: this.password() }).subscribe({
-      next: (user) => {
-        localStorage.setItem('userRole', user.role || 'CUSTOMER');
-        localStorage.setItem('userEmail', user.email);
-        localStorage.setItem('userId', user.id);
+      next: (response: AuthResponse) => {
+        sessionStorage.setItem('jwtToken', response.token);
 
-        if (user.role === 'ADMIN') {
+        const role = response.person.role || 'CUSTOMER';
+        const userEmail = response.person.email || '';
+        const userId = response.person.id ? response.person.id.toString() : '';
+
+        sessionStorage.setItem('userRole', role);
+        sessionStorage.setItem('userEmail', userEmail);
+        sessionStorage.setItem('userId', userId);
+
+        if (role === 'ADMIN') {
           void this.router.navigate(['/people']);
         } else {
           void this.router.navigate(['/customer']);
         }
       },
       error: (err: HttpErrorResponse) => {
-        // 1. Explicitly tell TypeScript the shape of the backend error object
-        const errorBody = err.error as { message?: string };
-
-        // 2. Safely grab the message (TypeScript now knows this is a string or undefined)
-        const finalMessage = errorBody?.message ?? 'Wrong password or email';
-
-        // 3. Set the signal with a guaranteed string
+        const errorBody = err.error as { error?: string };
+        const finalMessage = errorBody?.error ?? 'Invalid email or password';
         this.errorMessage.set(finalMessage);
       }
     });

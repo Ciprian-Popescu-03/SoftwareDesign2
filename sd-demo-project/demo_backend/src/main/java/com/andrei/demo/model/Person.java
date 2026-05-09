@@ -8,29 +8,35 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
-@Data // From Lombok
+@Data // From Lombok (automatically generates getters/setters for name, age, email, etc.)
 public class Person implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false)
+    private String name;
 
     @Column(unique = true, nullable = false)
-    private String username; // Or email, if you use email to log in
+    private String email; // We use email to log in
+
+    private Integer age;
 
     @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // Assuming you have a Role enum with CUSTOMER, ADMIN
+    private Role role; // ADMIN or CUSTOMER
 
-    // --- UserDetails Methods ---
+    // --- UserDetails Methods required by Spring Security ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // This maps your role to a Spring Security authority (e.g., "ROLE_ADMIN")
+        // Maps the role to a Spring Security authority (e.g., "ROLE_ADMIN")
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
@@ -41,7 +47,7 @@ public class Person implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username; // Or email, depending on your login strategy
+        return email; // Spring Security will use the email field as the "username"
     }
 
     @Override

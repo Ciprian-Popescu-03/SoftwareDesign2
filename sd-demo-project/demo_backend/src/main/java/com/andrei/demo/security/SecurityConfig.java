@@ -2,6 +2,7 @@ package com.andrei.demo.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,9 +28,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs
-                .cors(cors -> cors.configure(http)) // Enable CORS if your Angular app is on a different port
+                .cors(cors -> cors.configure(http)) // Enable CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/forgot-password").permitAll() // Open endpoints
+                        // Allow login, forgot password, and registration without a token
+                        .requestMatchers("/person/login", "/forgot-password/request", "/forgot-password/reset").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/person").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN") // Assignment 3: Protect admin routes
                         .anyRequest().authenticated() // All other endpoints require authentication
                 )

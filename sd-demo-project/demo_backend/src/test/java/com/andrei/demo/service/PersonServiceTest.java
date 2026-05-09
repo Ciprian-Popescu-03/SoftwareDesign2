@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +27,10 @@ public class PersonServiceTest {
 
     @Mock
     private PersonRepository personRepository;
+
+    // We must mock PasswordEncoder because PersonService uses it now!
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private PersonService personService;
@@ -49,6 +55,9 @@ public class PersonServiceTest {
         mockPersonDTO.setEmail("andrei@test.com");
         mockPersonDTO.setPassword("password123");
         mockPersonDTO.setAge(21);
+
+        // Tell Mockito to pretend to encode passwords whenever requested
+        lenient().when(passwordEncoder.encode(anyString())).thenReturn("hashed-password");
     }
 
     @Test
@@ -109,6 +118,8 @@ public class PersonServiceTest {
         assertNotNull(createdPerson);
         assertEquals("Andrei", createdPerson.getName());
         verify(personRepository, times(1)).save(any(Person.class));
+        // Verify that the password encoder was called during creation
+        verify(passwordEncoder, times(1)).encode("password123");
     }
 
     @Test
@@ -120,6 +131,8 @@ public class PersonServiceTest {
 
         assertNotNull(updatedPerson);
         verify(personRepository, times(1)).save(any(Person.class));
+        // Verify that the password encoder was called during update
+        verify(passwordEncoder, times(1)).encode("password123");
     }
 
     @Test
@@ -141,34 +154,20 @@ public class PersonServiceTest {
     }
 
     @Test
-    void login_Success() throws ValidationException {
-        when(personRepository.findByEmail("andrei@test.com")).thenReturn(Optional.of(mockPerson));
+    void addPerson_ShouldHashPassword() {
+        // Arrange
+        when(personRepository.save(any(Person.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Person loggedInPerson = personService.login("andrei@test.com", "password123");
+        // Act
+        Person savedPerson = personService.addPerson(mockPersonDTO);
 
-        assertNotNull(loggedInPerson);
-        assertEquals("andrei@test.com", loggedInPerson.getEmail());
+        // Assert
+        // Check that the password is NOT the raw string "password123"
+        assertNotEquals("password123", savedPerson.getPassword());
+
+        // Verify the encoder was actually used
+        verify(passwordEncoder, times(1)).encode("password123");
     }
 
-    @Test
-    void login_ThrowsException_WhenEmailNotFound() {
-        when(personRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            personService.login("unknown@test.com", "password123");
-        });
-
-        assertEquals("Invalid email or password.", exception.getMessage());
-    }
-
-    @Test
-    void login_ThrowsException_WhenPasswordIsIncorrect() {
-        when(personRepository.findByEmail("andrei@test.com")).thenReturn(Optional.of(mockPerson));
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            personService.login("andrei@test.com", "wrongpassword");
-        });
-
-        assertEquals("Invalid email or password.", exception.getMessage());
-    }
+    // Note: The login tests have been removed because PersonService no longer handles login logic!
 }
