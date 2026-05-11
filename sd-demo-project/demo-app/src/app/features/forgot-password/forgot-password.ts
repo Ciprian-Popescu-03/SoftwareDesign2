@@ -1,0 +1,72 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { PersonService } from '../../services/person.service';
+
+@Component({
+  selector: 'app-forgot-password',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
+  templateUrl: './forgot-password.html',
+  styleUrls: ['./forgot-password.scss']
+})
+export class ForgotPasswordComponent {
+  email = signal('');
+  code = signal('');
+  newPassword = signal('');
+  confirmPassword = signal('');
+  step = signal<1 | 2>(1);
+  message = signal('');
+  errorMessage = signal('');
+
+  private personService = inject(PersonService);
+  private router = inject(Router);
+
+  onRequestCode() {
+    this.errorMessage.set('');
+    this.message.set('');
+
+    this.personService.requestPasswordReset(this.email()).subscribe({
+      next: () => {
+        this.message.set('Code sent! Check your backend console.');
+        this.step.set(2);
+      },
+      error: () => this.errorMessage.set('Failed to send code. Make sure the email exists.')
+    });
+  }
+
+  onResetPassword() {
+    this.errorMessage.set('');
+    this.message.set('');
+
+    if (this.newPassword() !== this.confirmPassword()) {
+      this.errorMessage.set('Passwords do not match.');
+      return;
+    }
+
+    this.personService.resetPassword(this.email(), this.code(), this.newPassword()).subscribe({
+      next: () => {
+        this.message.set('Password reset successfully! Redirecting to login...');
+        setTimeout(() => void this.router.navigate(['/login']), 2000);
+      },
+      error: (err: HttpErrorResponse) => {
+        const errorBody = err.error as { error?: string };
+        this.errorMessage.set(errorBody?.error || 'Invalid or expired code.');
+      }
+    });
+  }
+}

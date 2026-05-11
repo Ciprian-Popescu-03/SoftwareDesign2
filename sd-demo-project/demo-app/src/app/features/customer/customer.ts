@@ -39,7 +39,7 @@ export class CustomerComponent implements OnInit {
   }
 
   loadOrders() {
-    const pId = localStorage.getItem('userId');
+    const pId = sessionStorage.getItem('userId');
     if (!pId) return;
 
     this.orderService.getOrdersByPersonId(pId).subscribe({
@@ -56,7 +56,7 @@ export class CustomerComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((selectedProduct: Product | undefined) => {
       if (selectedProduct?.id) {
-        const pId = localStorage.getItem('userId') || '';
+        const pId = sessionStorage.getItem('userId') || '';
 
         this.orderService.createOrder(pId, selectedProduct.id).subscribe({
           next: () => {
@@ -80,7 +80,7 @@ export class CustomerComponent implements OnInit {
   }
 
   logout() {
-    localStorage.clear();
+    sessionStorage.clear();
     void this.router.navigate(['/login']);
   }
 

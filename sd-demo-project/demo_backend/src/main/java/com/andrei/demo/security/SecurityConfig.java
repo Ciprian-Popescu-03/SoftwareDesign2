@@ -30,11 +30,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs
                 .cors(cors -> cors.configure(http)) // Enable CORS
                 .authorizeHttpRequests(auth -> auth
-                        // Allow login, forgot password, and registration without a token
                         .requestMatchers("/person/login", "/forgot-password/request", "/forgot-password/reset").permitAll()
                         .requestMatchers(HttpMethod.POST, "/person").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // Assignment 3: Protect admin routes
-                        .anyRequest().authenticated() // All other endpoints require authentication
+                        .requestMatchers(HttpMethod.GET, "/person").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/person/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/person/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/person/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

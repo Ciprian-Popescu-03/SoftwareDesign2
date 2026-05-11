@@ -38,9 +38,8 @@ public class PersonService {
         person.setName(personDTO.getName());
         person.setAge(personDTO.getAge());
         person.setEmail(personDTO.getEmail());
-
-        // Assignment 3: Hash the password before saving
         person.setPassword(passwordEncoder.encode(personDTO.getPassword()));
+        person.setRole(Role.CUSTOMER); // add this line
         return personRepository.save(person);
     }
 
@@ -57,23 +56,6 @@ public class PersonService {
         // Assignment 3: Hash the password before updating
         existingPerson.setPassword(passwordEncoder.encode(person.getPassword()));
         return personRepository.save(existingPerson);
-    }
-
-    public Person updatePerson2(UUID uuid, Person person) throws ValidationException{
-        return personRepository
-                .findById(uuid)
-                .map(existingPerson -> {
-                    existingPerson.setName(person.getName());
-                    existingPerson.setAge(person.getAge());
-                    existingPerson.setEmail(person.getEmail());
-
-                    // Assignment 3: Hash the password before updating
-                    existingPerson.setPassword(passwordEncoder.encode(person.getPassword()));
-                    return personRepository.save(existingPerson);
-                })
-                .orElseThrow(
-                        () -> new ValidationException("Person with id " + uuid + " not found")
-                );
     }
 
     public void deletePerson(UUID uuid) {
@@ -142,4 +124,6 @@ public class PersonService {
         // Remove code after successful reset so it can't be reused
         resetCodes.remove(email);
     }
+
+
 }

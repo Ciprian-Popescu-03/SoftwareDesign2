@@ -14,9 +14,15 @@ import { PersonService, AuthResponse } from '../../services/person.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
+  mode = signal<'login' | 'register'>('login');
+
   email = signal('');
   password = signal('');
+  name = signal('');
+  age = signal(0);
+
   errorMessage = signal('');
+  successMessage = signal('');
 
   private readonly personService = inject(PersonService);
   private readonly router = inject(Router);
@@ -27,16 +33,11 @@ export class LoginComponent {
     this.personService.login({ email: this.email(), password: this.password() }).subscribe({
       next: (response: AuthResponse) => {
         sessionStorage.setItem('jwtToken', response.token);
+        sessionStorage.setItem('userRole', response.person.role || 'CUSTOMER');
+        sessionStorage.setItem('userEmail', response.person.email || '');
+        sessionStorage.setItem('userId', response.person.id?.toString() || '');
 
-        const role = response.person.role || 'CUSTOMER';
-        const userEmail = response.person.email || '';
-        const userId = response.person.id ? response.person.id.toString() : '';
-
-        sessionStorage.setItem('userRole', role);
-        sessionStorage.setItem('userEmail', userEmail);
-        sessionStorage.setItem('userId', userId);
-
-        if (role === 'ADMIN') {
+        if (response.person.role === 'ADMIN') {
           void this.router.navigate(['/people']);
         } else {
           void this.router.navigate(['/customer']);
@@ -44,8 +45,34 @@ export class LoginComponent {
       },
       error: (err: HttpErrorResponse) => {
         const errorBody = err.error as { error?: string };
-        const finalMessage = errorBody?.error ?? 'Invalid email or password';
-        this.errorMessage.set(finalMessage);
+        this.errorMessage.set(errorBody?.error ?? 'Invalid email or password');
+      }
+    });
+  }
+
+  onRegister() {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.personService.create({
+      name: this.name(),
+      email: this.email(),
+      password: this.password(),
+      age: this.age()
+    }).subscribe({
+      next: () => {
+        this.successMessage.set('Account created! You can now sign in.');
+        this.name.set('');
+        this.age.set(0);
+        this.password.set('');
+        setTimeout(() => {
+          this.mode.set('login');
+          this.successMessage.set('');
+        }, 2000);
+      },
+      error: (err: HttpErrorResponse) => {
+        const errorBody = err.error as { error?: string };
+        this.errorMessage.set(errorBody?.error ?? 'Registration failed. Please try again.');
       }
     });
   }

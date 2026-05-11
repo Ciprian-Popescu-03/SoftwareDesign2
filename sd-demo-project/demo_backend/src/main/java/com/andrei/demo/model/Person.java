@@ -40,6 +40,7 @@ public class Person implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
+
     @Override
     public String getPassword() {
         return password;

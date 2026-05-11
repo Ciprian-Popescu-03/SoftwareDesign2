@@ -32,7 +32,7 @@ export class ProductListComponent {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
-  protected readonly isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+  protected readonly isAdmin = sessionStorage.getItem('userRole') === 'ADMIN';
   protected readonly isLoading = this.store.isLoading;
   protected readonly hasError = this.store.hasError;
 
@@ -60,7 +60,7 @@ export class ProductListComponent {
   }
 
   logout() {
-    localStorage.clear();
+    sessionStorage.clear();
     void this.router.navigate(['/login']);
   }
 
