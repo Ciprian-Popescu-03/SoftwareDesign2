@@ -142,7 +142,6 @@ public class PersonControllerIT {
                 .andExpect(jsonPath("$.role").value("CUSTOMER"));
     }
 
-    // --- Login ---
 
     @Test
     void shouldLoginSuccessfullyAndReturnToken() throws Exception {
@@ -199,7 +198,6 @@ public class PersonControllerIT {
                 .andExpect(jsonPath("$.person.role").value("CUSTOMER"));
     }
 
-    // --- JWT Protection ---
 
     @Test
     void shouldReturn401WhenNoTokenProvided() throws Exception {
@@ -231,7 +229,6 @@ public class PersonControllerIT {
 
     @Test
     void shouldReturn401WithExpiredToken() throws Exception {
-        // A manually crafted expired token
         String expiredToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjE2MDAwMDAwMDF9.invalid";
 
         mockMvc.perform(get("/person")
@@ -239,7 +236,6 @@ public class PersonControllerIT {
                 .andExpect(status().isUnauthorized());
     }
 
-    // --- Admin CRUD operations ---
 
     @Test
     void adminShouldGetPersonById() throws Exception {
@@ -251,7 +247,6 @@ public class PersonControllerIT {
 
     @Test
     void adminShouldDeletePerson() throws Exception {
-        // Create a person to delete
         Person toDelete = new Person();
         toDelete.setName("To Delete");
         toDelete.setEmail("delete@test.com");
@@ -293,7 +288,6 @@ public class PersonControllerIT {
                 .andExpect(status().isForbidden());
     }
 
-    // --- Password Reset ---
 
     @Test
     void shouldRequestPasswordResetWithoutToken() throws Exception {
@@ -312,11 +306,9 @@ public class PersonControllerIT {
 
     @Test
     void shouldRejectResetWithWrongCode() throws Exception {
-        // First request a code
         mockMvc.perform(post("/forgot-password/request")
                 .param("email", "customer@test.com"));
 
-        // Then try to reset with wrong code
         mockMvc.perform(post("/forgot-password/reset")
                         .param("email", "customer@test.com")
                         .param("code", "000000")

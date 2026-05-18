@@ -19,11 +19,8 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // In-memory store for reset codes (email -> code).
-    // In a production app, this would be a database table with expiration times.
     private final Map<String, String> resetCodes = new ConcurrentHashMap<>();
 
-    // Inject PasswordEncoder along with PersonRepository
     public PersonService(PersonRepository personRepository, PasswordEncoder passwordEncoder) {
         this.personRepository = personRepository;
         this.passwordEncoder = passwordEncoder;
@@ -39,7 +36,7 @@ public class PersonService {
         person.setAge(personDTO.getAge());
         person.setEmail(personDTO.getEmail());
         person.setPassword(passwordEncoder.encode(personDTO.getPassword()));
-        person.setRole(Role.CUSTOMER); // add this line
+        person.setRole(Role.CUSTOMER);
         return personRepository.save(person);
     }
 
@@ -53,7 +50,6 @@ public class PersonService {
         existingPerson.setAge(person.getAge());
         existingPerson.setEmail(person.getEmail());
 
-        // Assignment 3: Hash the password before updating
         existingPerson.setPassword(passwordEncoder.encode(person.getPassword()));
         return personRepository.save(existingPerson);
     }
@@ -85,7 +81,6 @@ public class PersonService {
                     existingPerson.setEmail((String) value);
                     break;
                 case "password":
-                    // Assignment 3: Hash patched password
                     existingPerson.setPassword(passwordEncoder.encode((String) value));
                     break;
                 case "age":
@@ -99,10 +94,8 @@ public class PersonService {
         return personRepository.save(existingPerson);
     }
 
-    // --- Assignment 3: Password Reset Methods ---
 
     public void saveResetCodeForUser(String email, String code) throws ValidationException {
-        // Verify user exists first
         personRepository.findByEmail(email)
                 .orElseThrow(() -> new ValidationException("No user found with email: " + email));
         resetCodes.put(email, code);
@@ -117,11 +110,9 @@ public class PersonService {
         Person person = personRepository.findByEmail(email)
                 .orElseThrow(() -> new ValidationException("No user found with email: " + email));
 
-        // Hash the new password
         person.setPassword(passwordEncoder.encode(newPasswordRaw));
         personRepository.save(person);
 
-        // Remove code after successful reset so it can't be reused
         resetCodes.remove(email);
     }
 

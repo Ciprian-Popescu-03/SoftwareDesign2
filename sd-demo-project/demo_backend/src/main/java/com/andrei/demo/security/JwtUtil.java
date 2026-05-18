@@ -16,8 +16,6 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
-    // IMPORTANT: In a real app, put this in application.properties!
-    // This is a 256-bit secure hex key for signing the JWT.
     private static final String SECRET_KEY = "4a6a4e635266556a586e3272357538782f413f4428472b4b6250655368566d59";
 
     public String extractUsername(String token) {
@@ -26,7 +24,7 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey()) // Uses the secret key to verify the token signature
+                .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -39,7 +37,7 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role); // Store the role in the token for Assignment 3
+        claims.put("role", role);
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -48,7 +46,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }

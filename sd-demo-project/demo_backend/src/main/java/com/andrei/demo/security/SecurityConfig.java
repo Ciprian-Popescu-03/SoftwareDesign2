@@ -27,8 +27,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless REST APIs
-                .cors(cors -> cors.configure(http)) // Enable CORS
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/person/login", "/forgot-password/request", "/forgot-password/reset").permitAll()
                         .requestMatchers(HttpMethod.POST, "/person").permitAll()
@@ -46,7 +46,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Assignment 3: Hash passwords on backend
+        return new BCryptPasswordEncoder();
     }
 
     @Bean

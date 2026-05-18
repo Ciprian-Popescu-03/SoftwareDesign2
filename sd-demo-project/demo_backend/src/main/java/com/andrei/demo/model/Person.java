@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Data // From Lombok (automatically generates getters/setters for name, age, email, etc.)
+@Data
 public class Person implements UserDetails {
 
     @Id
@@ -22,7 +22,7 @@ public class Person implements UserDetails {
     private String name;
 
     @Column(unique = true, nullable = false)
-    private String email; // We use email to log in
+    private String email;
 
     private Integer age;
 
@@ -30,13 +30,10 @@ public class Person implements UserDetails {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // ADMIN or CUSTOMER
-
-    // --- UserDetails Methods required by Spring Security ---
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Maps the role to a Spring Security authority (e.g., "ROLE_ADMIN")
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
@@ -48,7 +45,7 @@ public class Person implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email; // Spring Security will use the email field as the "username"
+        return email;
     }
 
     @Override

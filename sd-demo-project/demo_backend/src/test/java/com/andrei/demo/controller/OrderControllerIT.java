@@ -92,8 +92,6 @@ public class OrderControllerIT {
         return objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
     }
 
-    // --- JWT Protection ---
-
     @Test
     void shouldReturn401WhenCreatingOrderWithoutToken() throws Exception {
         String orderJson = String.format("{\"personId\":\"%s\",\"productIds\":[\"%s\"]}",
