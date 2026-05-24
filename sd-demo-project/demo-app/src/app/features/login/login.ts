@@ -33,6 +33,7 @@ export class LoginComponent {
     this.personService.login({ email: this.email(), password: this.password() }).subscribe({
       next: (response: AuthResponse) => {
         sessionStorage.setItem('jwtToken', response.token);
+        sessionStorage.setItem('refreshToken', response.refreshToken);
         sessionStorage.setItem('userRole', response.person.role || 'CUSTOMER');
         sessionStorage.setItem('userEmail', response.person.email || '');
         sessionStorage.setItem('userId', response.person.id?.toString() || '');

@@ -9,7 +9,12 @@ const AUTH_URL = 'http://localhost:8081/forgot-password';
 // Interface to handle the new backend response
 export interface AuthResponse {
   token: string;
-  person: Person;
+  refreshToken: string;  // ADD THIS
+  person: {
+    id: string;
+    email: string;
+    role: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
